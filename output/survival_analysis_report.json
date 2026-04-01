@@ -1,0 +1,92 @@
+{
+  "report_generated_at": "2026-03-20T12:28:33.841438",
+  "sample_size": {
+    "total_rows": 1261,
+    "unique_subjects": 796,
+    "rows_per_subject_mean": 1.5841708542713568,
+    "rows_per_subject_median": 1.0
+  },
+  "event_info": {
+    "n_subjects": 796,
+    "n_mace_events": 9.0,
+    "mace_event_rate_pct": 1.1306532663316584,
+    "n_mace_censored": 787.0,
+    "n_death_events": 167.0,
+    "death_event_rate_pct": 20.979899497487438,
+    "n_death_censored": 629.0,
+    "n_composite_events (MACE or death)": 173.0,
+    "composite_event_rate_pct": 21.733668341708544,
+    "n_death_before_mace (Competing risks)": 164.0,
+    "death_before_mace_pct": 20.603015075376884
+  },
+  "followup_time": {
+    "censor_year": 2024,
+    "mace_followup_median_years": 14.0,
+    "mace_followup_mean_years": 12.884422110552764,
+    "mace_followup_q25_years": 11.0,
+    "mace_followup_q75_years": 15.0,
+    "mace_followup_min_years": 1.0,
+    "mace_followup_max_years": 17.0,
+    "death_followup_median_years": 14.0,
+    "death_followup_mean_years": 13.008793969849247,
+    "death_followup_q25_years": 11.0,
+    "death_followup_q75_years": 15.0,
+    "death_followup_min_years": 1.0,
+    "death_followup_max_years": 17.0,
+    "composite_followup_median_years": 14.0,
+    "composite_followup_mean_years": 12.884422110552764,
+    "composite_followup_q25_years": 11.0,
+    "composite_followup_q75_years": 15.0,
+    "total_person_years_mace": 10256.0,
+    "total_person_years_death": 10355.0
+  },
+  "baseline_characteristics": {
+    "baseline_year_median": 2009.0,
+    "baseline_year_range": [
+      2007,
+      2015
+    ],
+    "enrollment_period_years": 8
+  },
+  "missing_data": {
+    "column_missing_info": {
+      "idno": {
+        "n_missing": 0.0,
+        "pct_missing": 0.0
+      },
+      "1st_MACE_year": {
+        "n_missing": 1250.0,
+        "pct_missing": 99.13
+      },
+      "death_year": {
+        "n_missing": 981.0,
+        "pct_missing": 77.8
+      },
+      "visit_year": {
+        "n_missing": 0.0,
+        "pct_missing": 0.0
+      }
+    },
+    "n_complete_cases": 4,
+    "pct_complete_cases": 0.317208564631245
+  },
+  "mace_type_breakdown": {
+    "mace_type_counts": {
+      "chronic_ischemic_heart_disease": 108,
+      "angina": 75,
+      "myocardial_infarction": 59,
+      "other_mace": 13,
+      "stroke": 10,
+      "heart_failure": 8
+    },
+    "mace_type_pct": {
+      "chronic_ischemic_heart_disease": 39.56,
+      "angina": 27.47,
+      "myocardial_infarction": 21.61,
+      "other_mace": 4.76,
+      "stroke": 3.66,
+      "heart_failure": 2.93
+    },
+    "n_unique_subjects_with_mace": 103
+  }
+}

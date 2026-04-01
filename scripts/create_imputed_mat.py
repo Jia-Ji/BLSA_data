@@ -303,12 +303,13 @@ def dataframe_to_mat_struct(df: pd.DataFrame) -> dict[str, np.ndarray]:
 
 def main() -> None:
     script_dir = Path(__file__).resolve().parent
-    data_dir = script_dir / "datarelease" / "BLSA_Actiheart_Summary_Data"
-    csv_dir = script_dir / "datarelease" / "data-csv"
+    workspace_root = script_dir.parent
+    data_dir = workspace_root / "datarelease" / "BLSA_Actiheart_Summary_Data"
+    csv_dir = workspace_root / "datarelease" / "data-csv"
 
-    activity_path = data_dir / "ActivityCountImputed_2016_Jun.csv"
-    heart_path = data_dir / "HeartRateImputed_2016_Jun.csv"
-    output_mat = data_dir / "blsa_imputed_actiheart.mat"
+    activity_path = data_dir / "ActivityCountRaw_2016_Jun.csv"
+    heart_path = data_dir / "HeartRateRaw_2016_Jun.csv"
+    output_mat = data_dir / "blsa_actiheart_summary.mat"
 
     activity_df = pd.read_csv(activity_path)
     heart_df = pd.read_csv(heart_path)
@@ -336,16 +337,21 @@ def main() -> None:
         ]
     )
 
+    # Check the activity_data_only.coulumns and heart_data_only.columns are the same after alignment
+    if not activity_data_only.columns.equals(heart_data_only.columns):
+        raise ValueError("After alignment, the timestamp columns differ between ActivityCount and HeartRate.")
+    else:
+        print("Aligned timestamp columns match between ActivityCount and HeartRate.")
+
     savemat(
         output_mat,
         {
             "idno": idno,
             "visit": visit,
             "visit_date": visit_date,
-            "ActivityCountImputed": activity_data_only.to_numpy(dtype=object),
-            "HeartRateImputed": heart_data_only.to_numpy(dtype=object),
-            "ActivityCountImputed_timestamp": np.array(activity_data_only.columns, dtype=object),
-            "HeartRateImputed_timestamp": np.array(heart_data_only.columns, dtype=object),
+            "ActivityCountRaw": activity_data_only.to_numpy(dtype=object),
+            "HeartRateRaw": heart_data_only.to_numpy(dtype=object),
+            "Timestamp": np.array(activity_data_only.columns, dtype=object),
             "Tab": tab_with_header,
         },
         do_compression=True,

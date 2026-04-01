@@ -1,1 +1,0 @@
-    print(diag_df.head())
