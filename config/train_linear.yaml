@@ -1,0 +1,5 @@
+Data:
+  path:
+    base_path: /Users/cdllyyy/Documents/Local Files/BLSA_data/combined_data
+    hr_pa_path: ${base_path}/blsa_raw_actiheart_data.mat
+    event_path: ${base_path}/actiheart_with_events.csv
