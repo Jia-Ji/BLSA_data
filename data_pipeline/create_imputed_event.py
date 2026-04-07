@@ -353,7 +353,7 @@ def build_tab(actiheart_id_df, first_mace, last_visit, cohort_data, demographic,
     actiheart_id_df = actiheart_id_df.copy()
     
     # add visit date to actiheart_id_df
-    actiheart_id_df = actiheart_id_df.merge(cohort_data[['idno', 'visit', 'visitdate']], on=['idno', 'visit'], how='left').rename(columns={'visitdate': 'actiheart_date'})
+    actiheart_id_df = actiheart_id_df.merge(cohort_data[['idno', 'visit', 'visitdate']], on=['idno', 'visit'], how='left').rename(columns={'visitdate': 'visit_date'})
 
     # merge with first MACE event date
     actiheart_id_df = actiheart_id_df.merge(first_mace[['idno', '1st_MACE_year', 'icd9_1','diag_text']], on='idno', how='left')
@@ -368,8 +368,16 @@ def build_tab(actiheart_id_df, first_mace, last_visit, cohort_data, demographic,
     # merge with last visit date
     actiheart_id_df = actiheart_id_df.merge(last_visit[['idno', 'LastVisit_Date']], on='idno', how='left').rename(columns={'LastVisit_Date': 'last_followup_date'})
     
-    # merge with demographic data to get age, sex, weight, height
-    actiheart_id_df = actiheart_id_df.merge(demographic, on=['idno', 'visit'], how='left')  
+    # check weight and height values for each subject-visit, if there are multiple values, print them out for manual review
+    for idno, visit in demographic.groupby(['idno', 'visit']).size().index:
+        subset = demographic[(demographic['idno'] == idno) & (demographic['visit'] == visit)]
+        if subset['weight'].nunique(dropna=True) > 1:
+            print(f"Subject {idno} visit {visit} has multiple weight values: {subset['weight'].unique()}")
+        if subset['height'].nunique(dropna=True) > 1:
+            print(f"Subject {idno} visit {visit} has multiple height values: {subset['height'].unique()}")   
+    # merge with demographic data with age, sex
+    demographic = demographic.drop_duplicates(subset=['idno', 'visit'], keep='first')
+    actiheart_id_df = actiheart_id_df.merge(demographic, on=['idno', 'visit'], how='left') 
 
     # merge with drinker status
     actiheart_id_df = actiheart_id_df.merge(drinker, on=['idno', 'visit'], how='left')
@@ -383,7 +391,7 @@ def build_tab(actiheart_id_df, first_mace, last_visit, cohort_data, demographic,
     # add a column to indicate whether the subject has incident MACE event after the visit
     actiheart_id_df['MACE_after_visit'] = np.where(
         (actiheart_id_df['1st_MACE_year'].notna()) & 
-        (get_year_from_date(actiheart_id_df['actiheart_date']) < actiheart_id_df['1st_MACE_year']),
+        (get_year_from_date(actiheart_id_df['visit_date']) < actiheart_id_df['1st_MACE_year']),
         1, 0
     )
 
@@ -415,7 +423,7 @@ def build_tab(actiheart_id_df, first_mace, last_visit, cohort_data, demographic,
 def main():
     script_dir = Path(__file__).resolve().parent
     workspace_root = script_dir.parent
-    output_dir = workspace_root / "output"
+    output_dir = workspace_root / "combined_data"
     output_dir.mkdir(exist_ok=True)
     print(f"Script directory: {script_dir}")
     print(f"Workspace root: {workspace_root}")
@@ -452,9 +460,9 @@ def main():
     )
     medication = load_and_prepare_medication_lookup(csv_dir / "crbsh_blsamedication.csv")
 
-    demographic = pd.read_csv(demographic_path)[["BLSA_id", "visit_id",
+    demographic = pd.read_csv(demographic_path)[["BLSA_id", "visit_id", "age",
                                                   "weight", "height", "sex"
-                                                  ]].rename(columns={"BLSA_id": "idno", "visit_id": "visit"})
+                                                  ]].rename(columns={"BLSA_id": "idno", "visit_id": "visit", "date": "actiheart_date"})
     
     # Clean year_1st_act to ensure it's numeric
     def clean_year(year_str):

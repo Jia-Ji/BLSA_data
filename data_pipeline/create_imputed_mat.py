@@ -115,13 +115,6 @@ def main() -> None:
     # Remove first key column from both matrices, as requested.
     activity_data_only = activity_aligned.iloc[:, 1:].copy()
     heart_data_only = heart_aligned.iloc[:, 1:].copy()
-    tab_df = build_tab(idno=idno, visit=visit, visit_date=visit_date, csv_dir=csv_dir)
-    tab_with_header = np.vstack(
-        [
-            tab_df.columns.to_numpy(dtype=object),
-            tab_df.to_numpy(dtype=object),
-        ]
-    )
 
     # Check the activity_data_only.coulumns and heart_data_only.columns are the same after alignment
     if not activity_data_only.columns.equals(heart_data_only.columns):
