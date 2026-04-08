@@ -9,7 +9,25 @@ def split_row_key(row_key: str) -> tuple[str, str, str]:
     return parts[0], parts[1], parts[2]
 
 
+def time_to_minutes(time_str: str) -> float | int:
+    parts = time_str.split(":")
+    if len(parts) == 2:
+        hours, minutes = map(int, parts)
+        seconds = 0
+    elif len(parts) == 3:
+        hours, minutes, seconds = map(int, parts)
+    else:
+        raise ValueError(f"Unexpected time format: {time_str!r}")
+
+    total_seconds = hours * 3600 + minutes * 60 + seconds
+    if total_seconds % 60 == 0:
+        return total_seconds // 60
+    return total_seconds / 60
+
+
 def merge_to_long(pa_path: Path, hr_path: Path, out_path: Path) -> None:
+    # Ensure output directory exists before creating output file.
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     with pa_path.open("r", newline="", encoding="utf-8-sig") as f_pa, hr_path.open(
         "r", newline="", encoding="utf-8-sig"
     ) as f_hr, out_path.open("w", newline="", encoding="utf-8") as f_out:
@@ -25,7 +43,7 @@ def merge_to_long(pa_path: Path, hr_path: Path, out_path: Path) -> None:
         if pa_times != hr_times:
             raise ValueError("Time columns do not match between PA and HR files.")
 
-        writer.writerow(["idno", "visit", "date", "time", "pa", "hr"])
+        writer.writerow(["idno", "visit", "date", "time", "minute_index", "pa", "hr"])
 
         line_no = 1
         while True:
@@ -54,15 +72,15 @@ def merge_to_long(pa_path: Path, hr_path: Path, out_path: Path) -> None:
                 raise ValueError(f"Value/time length mismatch at input line {line_no}.")
 
             for t, pa_value, hr_value in zip(pa_times, pa_values, hr_values):
-                writer.writerow([idno, visit, date, t, pa_value, hr_value])
+                writer.writerow([idno, visit, date, t, time_to_minutes(t), pa_value, hr_value])
 
 
 if __name__ == "__main__":
     data_dir = Path(r"d:\job_files\BLSA\BLSA_data\datarelease\BLSA_Actiheart_Summary_Data")
-    # output_dir = Path(r"d:\job_files\BLSA\BLSA_data\datarelease\")
+    output_dir = Path(r"d:\job_files\BLSA\BLSA_data\combined_data")
     pa_file = data_dir / "ActivityCountRaw_2016_Jun.csv"
     hr_file = data_dir / "HeartRateRaw_2016_Jun.csv"
-    out_file = data_dir / "PA_HR_Raw_2016_Jun_long.csv"
+    out_file = output_dir / "hr_pa_long.csv"
 
     merge_to_long(pa_file, hr_file, out_file)
     print(f"Done: {out_file}")

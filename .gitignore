@@ -3,3 +3,8 @@ datainfo
 output
 combined_data
 .DS_Store
+__pychache__
+outputs/
+__pycache__/
+data/__pycache__/
+main_log.txt

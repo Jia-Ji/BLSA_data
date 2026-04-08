@@ -1,5 +1,27 @@
-Data:
+base_path: d:/job_files/BLSA/BLSA_data/combined_data
+
+data:
   path:
-    base_path: /Users/cdllyyy/Documents/Local Files/BLSA_data/combined_data
-    hr_pa_path: ${base_path}/blsa_raw_actiheart_data.mat
+    hr_pa_path: ${base_path}/hr_pa_long.csv
     event_path: ${base_path}/actiheart_with_events.csv
+  
+  output:
+    processed_minute_data_path: ${base_path}/processed_minute_data.csv
+    subject_feature_data_path: ${base_path}/subject_feature_data.csv
+    analysis_data_path: ${base_path}/analysis_data.csv
+    data_quality_path: ${base_path}/data_quality.csv
+
+  hr_min: 20
+  hr_max: 200
+  pa_min: 0
+  min_valid_minutes_per_day: 600
+  min_valid_minutes_per_subject: 1000
+
+model:
+  name: linear
+  input_features: 10
+  output_features: 1
+  learning_rate: 0.001
+  weight_decay: 0.0001
+
+  feature_model:
