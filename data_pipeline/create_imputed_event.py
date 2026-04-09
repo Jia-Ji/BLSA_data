@@ -394,6 +394,17 @@ def build_tab(actiheart_id_df, first_mace, last_visit, cohort_data, demographic,
         (get_year_from_date(actiheart_id_df['visit_date']) < actiheart_id_df['1st_MACE_year']),
         1, 0
     )
+    
+    # compute death follow-up days from visit date
+    actiheart_id_df['visit_date'] = pd.to_datetime(actiheart_id_df['visit_date'], errors='coerce')
+    actiheart_id_df['dateofdeath'] = pd.to_datetime(actiheart_id_df['dateofdeath'], errors='coerce')
+    actiheart_id_df['death_followup_days'] = (actiheart_id_df['dateofdeath'] - actiheart_id_df['visit_date']).dt.days   
+
+    # add death event indicator
+    actiheart_id_df['death_event'] = np.where(
+        (actiheart_id_df['dateofdeath'].notna()) & 
+        (actiheart_id_df['visit_date'] < actiheart_id_df['dateofdeath']),
+        1, 0)
 
     return actiheart_id_df
 

@@ -21,7 +21,7 @@ class ActiheartDatasetBuilder:
                  min_valid_minutes_per_day: int = 600, min_valid_minutes_per_subject: int = 1000,
                 hr_min: float = 20, hr_max: float = 200, pa_min: float = 0
                 ) -> None:
-        
+    
         # data loading
         hr_pa_df = pd.read_csv(path['hr_pa_path']) 
         event_df = pd.read_csv(path['event_path'])
@@ -262,54 +262,32 @@ class ActiheartDatasetBuilder:
         self.subject_feature_df.to_csv(self.output_subject_path, index=False)
         return self.subject_feature_df
 
-    def merge_covariates(self) -> pd.DataFrame:
-        """
-        Merge subject features with covariates/outcomes.
-        """
-        if self.subject_feature_df.empty:
-            raise ValueError("Run build_subject_features() first.")
+    def merge_with_covariates(self, feature_df: pd.DataFrame) -> pd.DataFrame:
+        if self.covariate_df is None:
+            return feature_df.copy()
 
-        df = self.subject_feature_df.copy()
+        out = feature_df.merge(self.covariate_df, on="idno", how="left")
 
-        if self.covariate_df is not None:
-            if 'idno' not in self.covariate_df.columns:
-                raise ValueError("covariate_df must contain column 'idno'")
-            df = df.merge(self.covariate_df, on='idno', how='left')
+        if {"weight", "height"}.issubset(out.columns):
+            height = out["height"].copy()
+            if height.median(skipna=True) > 3:
+                height = height / 100.0
+            out["bmi"] = out["weight"] / (height ** 2)
+        
+        print(out.columns)
 
-        # BMI
-        if {'weight', 'height'}.issubset(df.columns):
-            df['bmi'] = df['weight'] / (df['height'] ** 2)
+        return out
 
-        self.analysis_df = df
-
-        # save analysis dataset
-        self.analysis_df.to_csv(self.output_analysis_path, index=False)
-        return self.analysis_df
-
-    def create_age_group(self,
-                         age_col: str = 'age',
-                         bins: Optional[List[float]] = None,
-                         labels: Optional[List[str]] = None) -> pd.DataFrame:
-        """
-        Add age group column for comparison analyses.
-        """
-        if self.analysis_df.empty:
-            raise ValueError("Run merge_covariates() first.")
-
-        df = self.analysis_df.copy()
-
-        if age_col not in df.columns:
-            raise ValueError(f"Column '{age_col}' not found in analysis_df")
-
-        if bins is None:
-            bins = [0, 60, 70, 80, np.inf]
-        if labels is None:
-            labels = ['<60', '60-69', '70-79', '80+']
-
-        df['age_group'] = pd.cut(df[age_col], bins=bins, labels=labels, right=False)
-        self.analysis_df = df
-
-        return self.analysis_df
+    @staticmethod
+    def add_age_group(df: pd.DataFrame, age_col: str = "age") -> pd.DataFrame:
+        out = df.copy()
+        out["age_group"] = pd.cut(
+            out[age_col],
+            bins=[0, 60, 70, 80, np.inf],
+            labels=["<60", "60-69", "70-79", "80+"],
+            right=False,
+        )
+        return out
 
     def compare_two_groups(self,
                            group_col: str,

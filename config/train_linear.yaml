@@ -1,6 +1,6 @@
 base_path: d:/job_files/BLSA/BLSA_data/combined_data
 
-data:
+DatasetBuilder:
   path:
     hr_pa_path: ${base_path}/hr_pa_long.csv
     event_path: ${base_path}/actiheart_with_events.csv
@@ -17,11 +17,99 @@ data:
   min_valid_minutes_per_day: 600
   min_valid_minutes_per_subject: 1000
 
-model:
-  name: linear
-  input_features: 10
-  output_features: 1
-  learning_rate: 0.001
-  weight_decay: 0.0001
 
-  feature_model:
+Model:
+  reaction_model:
+    name: LinearReactionModel
+    min_rows_per_subject: 500
+    use_pa_log: false
+
+    required_cols:
+      - idno
+      - hr
+      - pa
+      - pa_5min_mean
+      - pa_15min_mean
+      - tod_sin
+      - tod_cos
+
+    output_features:
+      - hr_pa_intercept
+      - hr_pa_slope
+      - hr_pa_quad
+      - hr_pa_5min_effect
+      - hr_pa_15min_effect
+      - hr_pa_tod_sin
+      - hr_pa_tod_cos
+      - hr_pa_r2
+      - hr_pa_resid_std
+      - mean_hr
+      - std_hr
+      - mean_pa
+      - std_pa
+      - corr_hr_pa
+
+  outcome_model:
+    name: LogisticOutcomeModel
+    target_col: dateofdeath
+    time_col: followup_time
+
+    categorical_cols:
+      - sex
+      - smoke
+
+    exclude_cols:
+      - idno
+      - followup_time
+      - age_group
+
+    model_params:
+      max_iter: 2000
+      class_weight: null
+      random_state: 42
+  
+  cox_model:
+    name: CoxModel
+    duration_col: death_followup_days
+    event_col: death_event
+    
+    model_params:
+      penalizer: 0.1
+      l1_ratio: 0.5
+
+    categorical_cols:
+      - sex
+      - smoke
+
+    include_cols:
+      - age
+      - hr_pa_intercept
+      - hr_pa_slope
+      - hr_pa_quad
+      - hr_pa_r2
+      - hr_pa_resid_std
+      - mean_hr
+      - mean_pa
+      - corr_hr_pa
+
+
+
+  analysis:
+    age_col: age
+    age_bins: [0, 60, 70, 80, 999]
+    age_labels: ["<60", "60-69", "70-79", "80+"]
+
+    group_compare_features:
+      - hr_pa_intercept
+      - hr_pa_slope
+      - hr_pa_quad
+      - hr_pa_r2
+      - hr_pa_resid_std
+      - mean_hr
+      - mean_pa
+      - corr_hr_pa
+
+Save:
+    reaction_model_path: outputs/reaction_model.pkl
+    outcome_model_path: outputs/outcome_model.pkl
+    analysis_dataset_path: outputs/analysis_dataset.csv
