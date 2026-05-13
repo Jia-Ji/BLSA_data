@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from lifelines import CoxPHFitter
 
 from models.base_model import BaseModel
+from utils import create_preprocessor
 
 
 class CoxOutcomeModel(BaseModel):
@@ -74,33 +75,13 @@ class CoxOutcomeModel(BaseModel):
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         numeric_cols = [
             c for c in numeric_cols
-            if c in self.include_cols or c not in [self.duration_col, self.event_col]
+            if c in self.include_cols and c not in [self.duration_col, self.event_col]
         ]
 
         self.feature_cols_ = numeric_cols
         self.categorical_cols_ = usable_cat
 
-        preprocessor = ColumnTransformer(
-            transformers=[
-                (
-                    "num",
-                    Pipeline([
-                        ("imputer", SimpleImputer(strategy="median")),
-                        ("scaler", StandardScaler())
-                    ]),
-                    self.feature_cols_,
-                ),
-                (
-                    "cat",
-                    Pipeline([
-                        ("imputer", SimpleImputer(strategy="most_frequent")),
-                        ("onehot", OneHotEncoder(drop="if_binary", handle_unknown="ignore"))
-                    ]),
-                    self.categorical_cols_,
-                ),
-            ],
-            remainder="drop"
-        )
+        preprocessor = create_preprocessor(self.feature_cols_, self.categorical_cols_)
 
         feature_input = df[self.feature_cols_ + self.categorical_cols_]
 

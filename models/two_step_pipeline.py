@@ -26,6 +26,9 @@ class TwoStepPipeline:
         # preprocess
         self.minute_df_ = self.dataset_builder.preprocess_minute_data()
 
+        # keep earliest valid Actiheart visit only
+        self.minute_df_ = self.dataset_builder.keep_first_actiheart_visit()
+
         # step 1
         self.reaction_model.fit(self.minute_df_)
         self.reaction_feature_df_ = self.reaction_model.predict(self.minute_df_)
@@ -36,6 +39,9 @@ class TwoStepPipeline:
         # step 2
         self.outcome_model.fit(self.analysis_df_)
 
+        risk = self.outcome_model.predict_risk(self.analysis_df_)  
+        print(f"Average predicted risk: {risk.mean():.4f}")
+        self.outcome_model.print_summary()
         return self
 
     def predict(self, minute_df: pd.DataFrame) -> pd.Series:

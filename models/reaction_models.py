@@ -35,7 +35,7 @@ class LinearReactionModel(BaseModel):
 
         results = []
 
-        for idno, sub_df in X.groupby("idno"):
+        for group_key, sub_df in X.groupby(["idno", "visit"]):
             sub_df = sub_df.copy()
 
             if self.use_pa_log:
@@ -67,9 +67,12 @@ class LinearReactionModel(BaseModel):
             except Exception:
                 continue
 
+            idno, visit = group_key
+      
             feat = {
                 "idno": idno,
                 "n_minutes_used": len(sub_df),
+                "visit": visit
             }
             for out_feat in self.output_features:
                 if out_feat == "hr_pa_intercept":

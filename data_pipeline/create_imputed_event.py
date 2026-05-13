@@ -398,18 +398,23 @@ def build_tab(actiheart_id_df, first_mace, last_visit, cohort_data, demographic,
     # compute death follow-up days from visit date
     actiheart_id_df['visit_date'] = pd.to_datetime(actiheart_id_df['visit_date'], errors='coerce')
     actiheart_id_df['dateofdeath'] = pd.to_datetime(actiheart_id_df['dateofdeath'], errors='coerce')
-    actiheart_id_df['death_followup_days'] = (actiheart_id_df['dateofdeath'] - actiheart_id_df['visit_date']).dt.days   
-
-    # add death event indicator
+    actiheart_id_df['last_followup_date'] = pd.to_datetime(actiheart_id_df['last_followup_date'], errors='coerce')
+    
+    # add death event indicator first
     actiheart_id_df['death_event'] = np.where(
         (actiheart_id_df['dateofdeath'].notna()) & 
         (actiheart_id_df['visit_date'] < actiheart_id_df['dateofdeath']),
         1, 0)
+    
+    # For events: time to death
+    # For censored: time to last follow-up
+    actiheart_id_df['death_followup_days'] = np.where(
+        actiheart_id_df['death_event'] == 1,
+        (actiheart_id_df['dateofdeath'] - actiheart_id_df['visit_date']).dt.days,
+        (actiheart_id_df['last_followup_date'] - actiheart_id_df['visit_date']).dt.days
+    )
 
     return actiheart_id_df
-
-
-
 # def build_icd_event_dates(icd_df, subject_col="subject_id"):
 #     icd_df = icd_df.copy()
 #     icd_df["record_date"] = pd.to_datetime(icd_df["record_date"])
@@ -463,10 +468,9 @@ def main():
         {"drinker": "drinker"},
     )
     smoke = load_and_prepare_lookup(
-        csv_dir / "crbsh_blsasmoke.csv",
+        csv_dir / "crbsh_blsasmokeyn.csv",
         {
-            "smkq07": "smoke_yrs",
-            "smkq02": "smoke",
+            "smkq": "smoke",
         },
     )
     medication = load_and_prepare_medication_lookup(csv_dir / "crbsh_blsamedication.csv")

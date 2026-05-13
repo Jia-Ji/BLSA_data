@@ -83,14 +83,14 @@ Model:
 
     include_cols:
       - age
-      - hr_pa_intercept
-      - hr_pa_slope
+      # - hr_pa_intercept
+      # - hr_pa_slope
       - hr_pa_quad
-      - hr_pa_r2
-      - hr_pa_resid_std
+      # - hr_pa_r2
+      # - hr_pa_resid_std
       - mean_hr
       - mean_pa
-      - corr_hr_pa
+      # - corr_hr_pa
 
 
 
